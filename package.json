@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "test": "jest"
+  },
+  "name": "unit-tests",
+  "version": "1.0.0",
+  "main": "unit.js",
+  "dependencies": {
+    "chunk": "0.0.3",
+    "jest": "^29.4.1"
+  },
+  "jest": {
+    "verbose": true
+  },
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "modulePaths": ["<rootDir>/src/"]
+}
