@@ -35,13 +35,12 @@ module.exports = {
 // // => [['a', 'b', 'c'], ['d']]-------output
 
 function chunk(array, size = 1) {
-  if (array === null || typeof array !== 'object' || !('length' in array)) {
-    throw new TypeError(`Expected an array, got ${typeof array}`);
+  if (!Array.isArray(array)) {
+    throw new TypeError('First argument must be an array');
   }
-  if (typeof size !== 'number' || size % 1 !== 0 || size < 1) {
-    throw new Error(`Expected size to be a positive integer, got ${size}`);
+  if (!Number.isInteger(size) || size < 1) {
+    throw new RangeError('Second argument must be a positive integer');
   }
-  
   let result = [];
   let i, j, chunk;
   
@@ -68,9 +67,9 @@ function chunk(array, size = 1) {
 // // => [1, 2, 3-------output
 
  function compact(array) {
-  if (typeof array !== "object" || !(array instanceof Array)) {
-    throw new TypeError("Argument must be an array");
-  }  
+  if (!Array.isArray(array)) {
+    throw new TypeError('Argument must be an array');
+  } 
 
   let result = [];
   for (let i = 0; i < array.length; i++) {
@@ -100,9 +99,9 @@ function chunk(array, size = 1) {
 
 
   function drop(array, n=1) {
-    if (typeof array !== "object" || !(array instanceof Array)) {
-      throw new TypeError("Argument must be an array");
-    }    
+    if (!Array.isArray(array)) {
+      throw new TypeError('First argument must be an array');
+    }  
     if (typeof n !== "number") {
       throw new TypeError("Second argument must be a number");
     }
@@ -209,6 +208,12 @@ _.filter(users, 'active');
 // => objects for ['barney'] */
 
 function filter(array, callback) {
+  if (!Array.isArray(array)) {
+    throw new TypeError('First argument must be an array');
+  }
+  if (typeof callback !== 'function') {
+    throw new TypeError('Second argument must be a function');
+  }
   let index = 0;
   let result = [];
   for (const value of array) {
@@ -250,18 +255,36 @@ _.find(users, ['active', false]);
 _.find(users, 'active');
 // => object for 'barney'*/
 
-function find(collection, predicate = identity, fromIndex = 0) {
-  function identity(val) {
-    return val;
+function find(collection, predicate = value => value, fromIndex = 0) {
+  if (!Array.isArray(collection) && typeof collection !== 'object') {
+    throw new TypeError('First argument must be an array or an object');
   }
-  
-  for (let i = fromIndex; i < collection.length; i++) {
-    let value = collection[i];
-    if (typeof predicate === 'function' && predicate(value, i, collection)) {
+
+  if (Array.isArray(predicate)) {
+    const [prop, value] = predicate;
+    predicate = (item) => item[prop] === value;
+  } else if (typeof predicate === 'object') {
+    const props = predicate;
+    predicate = (item) => {
+      for (const prop in props) {
+        if (item[prop] !== props[prop]) {
+          return false;
+        }
+      }
+      return true;
+    }
+  } else if (typeof predicate !== 'function') {
+    const prop = predicate;
+    predicate = (item) => prop in item;
+  }
+
+  for (let i = 0; i < collection.length; i++) {
+    const value = collection[i];
+    if (predicate(value, i, collection)) {
       return value;
     }
   }
-  return undefined
+  return undefined;
 }
 
 
@@ -293,6 +316,13 @@ function find(collection, predicate = identity, fromIndex = 0) {
 // // => ['barney', 'fred']
 
 function map(array, iteratee) {
+  if (!Array.isArray(array) && typeof array !== 'object') {
+    throw new TypeError('First argument must be an array or object');
+  }
+
+  if (typeof iteratee !== 'function' && typeof iteratee !== 'string') {
+    throw new Error(`Callback must be a function or string`);
+  }
   let result = [];
   for (let i = 0; i < array.length; i++) {
     result[i] = iteratee(array[i], i, array);
@@ -318,6 +348,16 @@ function map(array, iteratee) {
 // // => []
 
 function take(array, n = 1) {
+  if (!Array.isArray(array)) {
+    throw new TypeError('First argument must be an array');
+  }
+  if (typeof n !== 'number' || isNaN(n)) {
+    throw new TypeError('Second argument must be a integer');
+  }
+  if (!Array.isArray(array) || !array.length) {
+    return [];
+  }
+
   const result = [];
   for (let i = 0; i < n && i < array.length; i++) {
     result[i] = array[i];
